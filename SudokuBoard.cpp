@@ -1,4 +1,3 @@
-```cpp
 #include "SudokuBoard.h"
 
 #include <functional>
@@ -458,4 +457,3 @@ bool SudokuBoard::dfsSolve(bool assigned[81]) {
     std::vector<ui> path;
     return dfsSolve(path, assigned);
 }
-```
