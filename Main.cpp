@@ -1,4 +1,4 @@
-#include "SudokuBoard.h"
+﻿#include "SudokuBoard.h"
 #include <iostream>
 #include <cstdio>
 #include <vector>
@@ -13,22 +13,25 @@
  * using the SudokuBoard class (bitset-based solver with DFS and logical simplification).
  */
 
- /** Flag to enable descriptive (step-by-step) output. */
-constexpr bool IS_DESC_VERSION = true;
+#define PROGRAM_VERSION "SudokuSolver v1.1.4"
+#define IS_DESCRIPTED_VERSION          0
+#define IS_ANSI_ESCAPE_COLORED_VERSION 0
 
-/** Flag to enable ANSI escape codes for colored output. */
-constexpr bool IS_ANSI_ESCAPE_COLORED_VERSION = true;
-
-/** Current version string of the solver. */
-const char* version = "SudokuSolver v1.1.3";
-
-/** If ANSI colors are disabled, these macros expand to empty strings. */
-const char* ANSI_ESCAPE_DISABLED = "";
-const char* ANSI_ESCAPE_RESET = IS_ANSI_ESCAPE_COLORED_VERSION ? "\033[0m" : ANSI_ESCAPE_DISABLED;
-const char* ANSI_ESCAPE_RED = IS_ANSI_ESCAPE_COLORED_VERSION ? "\033[31m" : ANSI_ESCAPE_DISABLED;
-const char* ANSI_ESCAPE_GREEN = IS_ANSI_ESCAPE_COLORED_VERSION ? "\033[32m" : ANSI_ESCAPE_DISABLED;
-const char* ANSI_ESCAPE_MAGENTA = IS_ANSI_ESCAPE_COLORED_VERSION ? "\033[35m" : ANSI_ESCAPE_DISABLED;
-const char* ANSI_ESCAPE_GRAY = IS_ANSI_ESCAPE_COLORED_VERSION ? "\033[90m" : ANSI_ESCAPE_DISABLED;
+#if IS_ANSI_ESCAPE_COLORED_VERSION
+  #define ANSI_ESCAPE_RESET    "\033[0m"
+  #define ANSI_ESCAPE_GRAY     "\033[90m"
+  #define ANSI_ESCAPE_RED      "\033[91m"
+  #define ANSI_ESCAPE_GREEN    "\033[92m"
+  #define ANSI_ESCAPE_YELLOW   "\033[93m"
+  #define ANSI_ESCAPE_MAGENTA  "\033[95m"
+#else
+  #define ANSI_ESCAPE_RESET    ""
+  #define ANSI_ESCAPE_GRAY     ""
+  #define ANSI_ESCAPE_RED      ""
+  #define ANSI_ESCAPE_GREEN    ""
+  #define ANSI_ESCAPE_YELLOW   ""
+  #define ANSI_ESCAPE_MAGENTA  ""
+#endif
 
 /** Global SudokuBoard instance used by the solver. */
 SudokuBoard board;
@@ -52,7 +55,7 @@ static const bool falseArr81[81] = {};
  * @param highlights Boolean array of length 81, where true indicates the cell should be highlighted.
  * @return true if any cell has zero candidates (contradiction), false otherwise.
  */
-static bool printBoard(size_t spaces, const bool highlights[81]) {
+static bool printBoard(size_t spaces, const bool highlights[81], const char* highlightColor) {
     bool hasContradiction = false;
 
     for (ui y = 0; y < 9; y++) {
@@ -83,7 +86,7 @@ static bool printBoard(size_t spaces, const bool highlights[81]) {
             } else {
                 // Single value assigned
                 bool highlight = highlights[x + 9 * y];
-                if (highlight) std::cout << ANSI_ESCAPE_MAGENTA;
+                if (highlight) std::cout << highlightColor;
                 std::cout << char('0' + val) << ' ';
                 if (highlight) std::cout << ANSI_ESCAPE_RESET;
             }
@@ -133,7 +136,7 @@ static void assignListener(
     const GPos& justAssigned
 ) {
     assignments++;
-    if (!IS_DESC_VERSION) return;
+    if (!IS_DESCRIPTED_VERSION) return;
 
     // Indentation proportional to recursion depth
     size_t spaces = (path.size() - 1) * 2;
@@ -154,7 +157,9 @@ static void assignListener(
         << ANSI_ESCAPE_RESET << std::endl;
 
     // Print board state after assignment
-    printBoard(spaces, assigned);
+    printBoard(spaces, assigned, ANSI_ESCAPE_MAGENTA);
+
+    std::cout << std::endl; // v1.1.4
 }
 
 /**
@@ -180,13 +185,13 @@ static void simplifyListener(
     const bool assigned[81]
 ) {
     simplifications++;
-    if (!IS_DESC_VERSION) return;
+    if (!IS_DESCRIPTED_VERSION) return;
 
     // Indentation proportional to recursion depth
     size_t spaces = (path.size()) * 2;
     if (spaces >= 2) {
         for (size_t i = 0; i < spaces - 2; i++) std::cout << ' ';
-        std::cout << "> ";
+        std::cout << ANSI_ESCAPE_GRAY << "> " << ANSI_ESCAPE_RESET;
     }
 
     // Print branch path
@@ -202,7 +207,7 @@ static void simplifyListener(
         << std::endl;
 
     // Print board state after simplification
-    printBoard(spaces, assigned);
+    printBoard(spaces, assigned, ANSI_ESCAPE_MAGENTA);
 
     std::cout << std::endl; // v1.1.3
 }
@@ -228,7 +233,7 @@ static void eliminateListener(
     const uc& value,
     const uc& by
 ) {
-    if (!IS_DESC_VERSION) return;
+    if (!IS_DESCRIPTED_VERSION) return;
 
     // Indentation proportional to recursion depth
     size_t spaces = (path.size()) * 2;
@@ -342,14 +347,14 @@ static bool solver() {
             char c = 0;
             // Read one character (expect digit or blank)
             if (scanf_s("%c", &c, 1) != 1) {
-                std::cerr << "{error} input-format-error: too little characters provided in a line" << std::endl;
+                std::cerr << ANSI_ESCAPE_RED << "{error} input-format-error: too little characters provided in a line" << ANSI_ESCAPE_RESET << std::endl;
                 return false;
             }
             // If last column, the next character must be newline
             if (x == 8) {
                 char nl = std::getchar();
                 if (nl != '\n') {
-                    std::cerr << "{error} input-format-error: newline is missing" << std::endl;
+                    std::cerr << ANSI_ESCAPE_RED << "{error} input-format-error: newline is missing" << ANSI_ESCAPE_RESET << std::endl;
                     skipToNewLine();
                     return false;
                 }
@@ -357,7 +362,7 @@ static bool solver() {
             // If character is not a digit, treat as empty
             if (!(c >= '1' && c <= '9')) {
                 if (c == '\n') {
-                    std::cerr << "{error} input-format-error: unexpected newline provided" << std::endl;
+                    std::cerr << ANSI_ESCAPE_RED << "{error} input-format-error: unexpected newline provided" << ANSI_ESCAPE_RESET << std::endl;
                     return false;
                 }
                 continue;
@@ -369,8 +374,20 @@ static bool solver() {
 
     std::cout << std::endl;
     // Display initial board (no highlights)
-    printBoard(0, falseArr81);
+    printBoard(0, falseArr81, nullptr);
     pause();
+
+    bool decidedAtStart[81] = {}; // {false, false, ...}
+    SudokuBoard before(board.copyData());
+    for (uc y = 0; y < 9; y++) {
+        for (uc x = 0; x < 9; x++) {
+            if (before.getOnlyPossibleValue(GPos(x,y)) == 0) {
+                continue;
+            }
+            decidedAtStart[x + 9 * y] = true;
+        }
+    }
+
 
     // Start timing
     auto start = std::chrono::high_resolution_clock::now();
@@ -385,7 +402,7 @@ static bool solver() {
     double seconds = micros / 1'000'000.0;
 
     // Print spacing and solution header
-    for (int i = 0; i < 3; i++) std::cout << std::endl;
+    std::cout << std::endl;
     std::cout << ">======== ANSWER ========" << std::endl;
 
     if (!solved) {
@@ -394,10 +411,11 @@ static bool solver() {
     }
 
     // Display solved board
-    printBoard(0, falseArr81);
-    std::cout << "> Solved in " << assignments << " Tentative Assignments, "
-        << simplifications << " Simplifications, "
-        << seconds << " seconds." << std::endl;
+    printBoard(0, decidedAtStart, ANSI_ESCAPE_GRAY);
+    std::cout << ANSI_ESCAPE_GRAY << '>' << ANSI_ESCAPE_RESET << " Solved in "
+        << ANSI_ESCAPE_YELLOW << assignments     << ANSI_ESCAPE_RESET << " Tentative Assignments, "
+        << ANSI_ESCAPE_YELLOW << simplifications << ANSI_ESCAPE_RESET << " Simplifications, "
+        << ANSI_ESCAPE_GREEN  << seconds         << ANSI_ESCAPE_RESET << " seconds." << std::endl;
     return true;
 }
 
@@ -410,17 +428,25 @@ static bool solver() {
  * @return Exit code (unused).
  */
 int main() {
+    std::cout << ANSI_ESCAPE_YELLOW << PROGRAM_VERSION << ANSI_ESCAPE_RESET << ' ';
+    std::cout << (IS_DESCRIPTED_VERSION          ?    "DESC" :    "PRFM") << ' ';
+    std::cout << (IS_ANSI_ESCAPE_COLORED_VERSION ? "COLORED" : "NOCOLOR");
+    std::cout << std::endl;
+
+    bool isFirst = true;
     while (true) {
         assignments = 0;
         simplifications = 0;
+        if (isFirst) {
+            isFirst = false;
+        } else {
+            board = SudokuBoard();
+        }
+
         if (!solver()) {
-            // Input error: skip to next iteration
-            std::cout << std::endl << std::endl;
             continue;
         }
         pause();
-        // Reset board state for next puzzle
-        board = SudokuBoard();
     }
     return 0;
 }
