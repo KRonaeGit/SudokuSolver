@@ -53,8 +53,8 @@ bool SudokuBoard::dfsSolve(SudokuBoard& board, std::vector<ui>& path, bool assig
         return true;
 
     // Choose next cell by MRV (minimum remaining values)
-    auto [pos, cnt] = board.findMRVCell();
-    if (cnt == 0) {
+    auto [pos, count] = board.findMRVCell();
+    if (count == 0) {
         // No candidates left for some cell => dead end
         return false;
     }
@@ -196,14 +196,14 @@ uc SudokuBoard::getCellInfoAt(const GPos gpos, uc& count) const {
 }
 
 uc SudokuBoard::getOnlyPossibleValue(const GPos gpos) const {
-    uc cnt;
-    return getCellInfoAt(gpos, cnt);
+    uc count;
+    return getCellInfoAt(gpos, count);
 }
 
 uc SudokuBoard::getPossiblesCountAt(const GPos gpos) const {
-    uc cnt;
-    getCellInfoAt(gpos, cnt);
-    return cnt;
+    uc count;
+    getCellInfoAt(gpos, count);
+    return count;
 }
 
 std::vector<uc> SudokuBoard::getCandiatesAt(const GPos gpos) const {
@@ -223,10 +223,10 @@ bool SudokuBoard::simplify(ui& eliminations, std::function<void(const Simplifica
     for (uc y = 0; y < 9; y++) {
         for (uc x = 0; x < 9; x++) {
             GPos selfPos(x, y);
-            uc cnt;
-            uc onlyVal = getCellInfoAt(selfPos, cnt);
+            uc count;
+            uc onlyVal = getCellInfoAt(selfPos, count);
 
-            if (cnt == 0) {
+            if (count == 0) {
                 // No candidates => contradiction
                 eventListener(NO_VALUE_POSSIBLE, selfPos, 0, 0);
                 return false;
@@ -238,7 +238,7 @@ bool SudokuBoard::simplify(ui& eliminations, std::function<void(const Simplifica
             uc chunkStartX = chunkX * 3;
             uc chunkStartY = chunkY * 3;
 
-            if (cnt == 1) {
+            if (count == 1) {
                 // Naked Single: eliminate this fixed value from peers
 
                 // Eliminate from row
@@ -277,12 +277,12 @@ bool SudokuBoard::simplify(ui& eliminations, std::function<void(const Simplifica
             }
 
             // Re-evaluate candidate count after naked single elimination
-            onlyVal = getCellInfoAt(selfPos, cnt);
-            if (cnt == 0) {
+            onlyVal = getCellInfoAt(selfPos, count);
+            if (count == 0) {
                 eventListener(NO_VALUE_POSSIBLE, selfPos, 0, 0);
                 return false;
             }
-            if (cnt == 1)
+            if (count == 1)
                 continue; // Already handled as Naked Single
 
             // Hidden Single checks: for each candidate v,
@@ -301,9 +301,10 @@ bool SudokuBoard::simplify(ui& eliminations, std::function<void(const Simplifica
                     }
                 }
                 if (success) {
-                    eliminations += cnt - 1;
-                    eventListener(VALUE_SURE_BY_ROW, selfPos, v, y);
+                    eliminations += count - 1;
                     makeSureAt(selfPos, v, false);
+                    eventListener(VALUE_SURE_BY_ROW, selfPos, v, y);
+                    continue;
                 }
 
                 // Check column uniqueness
@@ -316,9 +317,10 @@ bool SudokuBoard::simplify(ui& eliminations, std::function<void(const Simplifica
                     }
                 }
                 if (success) {
-                    eliminations += cnt - 1;
-                    eventListener(VALUE_SURE_BY_COLUMN, selfPos, v, x);
+                    eliminations += count - 1;
                     makeSureAt(selfPos, v, false);
+                    eventListener(VALUE_SURE_BY_COLUMN, selfPos, v, x);
+                    continue;
                 }
 
                 // Check chunk uniqueness
@@ -335,9 +337,10 @@ bool SudokuBoard::simplify(ui& eliminations, std::function<void(const Simplifica
                     if (!success) break;
                 }
                 if (success) {
-                    eliminations += cnt - 1;
-                    eventListener(VALUE_SURE_BY_CHUNK, selfPos, v, chunkX + 3 * chunkY);
+                    eliminations += count - 1;
                     makeSureAt(selfPos, v, false);
+                    eventListener(VALUE_SURE_BY_CHUNK, selfPos, v, chunkX + 3 * chunkY);
+                    continue;
                 }
             }
         }
@@ -372,9 +375,9 @@ bool SudokuBoard::isSolved() const {
     for (uc y = 0; y < 9; y++) {
         for (uc x = 0; x < 9; x++) {
             GPos gp(x, y);
-            uc cnt;
-            getCellInfoAt(gp, cnt);
-            if (cnt != 1) return false;
+            uc count;
+            getCellInfoAt(gp, count);
+            if (count != 1) return false;
         }
     }
     return true;
@@ -384,9 +387,9 @@ bool SudokuBoard::hasContradiction() const {
     // Check if any cell has zero candidates
     for (uc y = 0; y < 9; y++) {
         for (uc x = 0; x < 9; x++) {
-            uc cnt;
-            getCellInfoAt(GPos(x, y), cnt);
-            if (cnt == 0) return true;
+            uc count;
+            getCellInfoAt(GPos(x, y), count);
+            if (count == 0) return true;
         }
     }
     return false;
@@ -400,14 +403,14 @@ std::pair<GPos, uc> SudokuBoard::findMRVCell() const {
     for (uc y = 0; y < 9; y++) {
         for (uc x = 0; x < 9; x++) {
             GPos gp(x, y);
-            uc cnt;
-            getCellInfoAt(gp, cnt);
-            if (cnt == 0) {
+            uc count;
+            getCellInfoAt(gp, count);
+            if (count == 0) {
                 // Contradiction: return immediately with count=0
                 return { gp, 0 };
             }
-            if (cnt > 1 && cnt < bestCount) {
-                bestCount = cnt;
+            if (count > 1 && count < bestCount) {
+                bestCount = count;
                 bestPos = gp;
             }
         }
