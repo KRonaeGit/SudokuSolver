@@ -19,7 +19,7 @@ enum SimplificationCause {
     NO_VALUE_POSSIBLE = -1,        /**< No candidate possible for a cell, indicates contradiction */
     ELIMINATION_BY_ROW = 1,        /**< Candidate eliminated because same row has a determined value */
     ELIMINATION_BY_COLUMN = 2,     /**< Candidate eliminated because same column has a determined value */
-    ELIMINATION_BY_CHUNK = 3,      /**< Candidate eliminated because same 3¡¿3 chunk has a determined value */
+    ELIMINATION_BY_CHUNK = 3,      /**< Candidate eliminated because same 3Ã—3 chunk has a determined value */
     VALUE_SURE_BY_ROW = 4,         /**< Cell value determined uniquely by row constraint */
     VALUE_SURE_BY_COLUMN = 5,      /**< Cell value determined uniquely by column constraint */
     VALUE_SURE_BY_CHUNK = 6        /**< Cell value determined uniquely by chunk constraint */
@@ -59,7 +59,7 @@ public:
 
 /**
  * @class GPos
- * @brief Global position of a cell on the 9¡¿9 Sudoku board.
+ * @brief Global position of a cell on the 9Ã—9 Sudoku board.
  *
  * Inherits from Tuple2. X and Y range from 0 to 8.
  */
@@ -80,11 +80,11 @@ public:
 
 /**
  * @class SudokuBoard
- * @brief Bitset-based representation of a 9¡¿9 Sudoku board supporting
+ * @brief Bitset-based representation of a 9Ã—9 Sudoku board supporting
  *        candidate elimination, logical simplification, and DFS solving.
  *
  * Each of the 81 cells has 9 candidate bits (1..9), stored in a total of
- * 12 ulli elements (12¡¿64 = 768 bits) for 729 used bits.
+ * 12 ulli elements (12Ã—64 = 768 bits) for 729 used bits.
  */
 class SudokuBoard {
 private:
@@ -111,7 +111,8 @@ private:
      * @param path Vector of branch indices taken so far (for tracing).
      * @param assigned Boolean array of size 81 indicating which cells are assigned.
      * @param assignListener Callback invoked when a value is assigned to a cell.
-     * @param simplifyListener Callback invoked after each simplification step.
+     * @param 
+     Listener Callback invoked after each simplification step.
      * @param eliminateListener Callback invoked on each candidate elimination.
      * @param isFirst Flag indicating whether this is the first simplification group.
      * @return true if a valid solution is found, false on contradiction or dead end.
