@@ -1,4 +1,4 @@
-﻿#include "SudokuBoard.h"
+#include "SudokuBoard.h"
 #include <iostream>
 #include <cstdio>
 #include <vector>
@@ -14,13 +14,13 @@
  */
 
  /** Flag to enable descriptive (step-by-step) output. */
-constexpr bool IS_DESC_VERSION = false;
+constexpr bool IS_DESC_VERSION = true;
 
 /** Flag to enable ANSI escape codes for colored output. */
-constexpr bool IS_ANSI_ESCAPE_COLORED_VERSION = false;
+constexpr bool IS_ANSI_ESCAPE_COLORED_VERSION = true;
 
 /** Current version string of the solver. */
-const char* version = "SudokuSolver v1.1.2";
+const char* version = "SudokuSolver v1.1.3";
 
 /** If ANSI colors are disabled, these macros expand to empty strings. */
 const char* ANSI_ESCAPE_DISABLED = "";
@@ -68,11 +68,11 @@ static bool printBoard(size_t spaces, const bool highlights[81]) {
             // Print vertical separator every 3 columns
             if (x % 3 == 0) std::cout << ANSI_ESCAPE_GRAY << "| " << ANSI_ESCAPE_RESET;
 
-            uc cnt;
-            uc val = board.getCellInfoAt(GPos(x, y), cnt);
+            uc count;
+            uc val = board.getCellInfoAt(GPos(x, y), count);
             if (val == 0) {
                 // If no single value assigned
-                if (cnt == 0) {
+                if (count == 0) {
                     // Contradiction: no candidates remain
                     hasContradiction = true;
                     std::cout << ANSI_ESCAPE_RED << "! " << ANSI_ESCAPE_RESET;
@@ -203,6 +203,8 @@ static void simplifyListener(
 
     // Print board state after simplification
     printBoard(spaces, assigned);
+
+    std::cout << std::endl; // v1.1.3
 }
 
 /**
@@ -277,15 +279,15 @@ static void eliminateListener(
     // Print remaining candidates for that cell in gray
     std::cout << ANSI_ESCAPE_GRAY << " {";
     bool isFirst = true;
-    uc cnt = 0;
+    uc count = 0;
     for (uc v = 1; v <= 9; v++) {
         if (!board.isPossibleAt(cell, v)) continue;
         if (!isFirst) std::cout << ", ";
         std::cout << (int)v;
         isFirst = false;
-        cnt++;
+        count++;
     }
-    std::cout << "}(" << (int)cnt << ")" << ANSI_ESCAPE_RESET;
+    std::cout << "}(" << (int)count << ")" << ANSI_ESCAPE_RESET;
 
     // If exactly one candidate remains after elimination, mark it
     if (board.getOnlyPossibleValue(cell) != 0)
